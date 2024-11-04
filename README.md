@@ -17,3 +17,5 @@ Celý postup se dá shrnout do 4 kroků:
 ### Detekce struktury
 
 ### Rozpoznání textu
+
+## Shrnutí
