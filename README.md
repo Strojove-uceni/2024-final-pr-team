@@ -39,3 +39,6 @@ Pro korekci rotace jsme
 ### Rozpoznání textu
 
 ## Shrnutí
+## Odkazy
+Většina použitých kódů je dostupná ke stažení zde: <a href="https://drive.google.com/drive/folders/1VXDQpVIAQ3XSNKVEbv4OpxZIaYCLkBbK?usp=sharing" target="_blank">TabuVision Codes</a>
+
