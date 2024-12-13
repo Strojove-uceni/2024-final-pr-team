@@ -178,7 +178,7 @@ Kvůli významu kroku detekce struktury tabulky jsme vyhodnotili, že pro zvýš
 
 Výsledkem celého projektu je sofistikovaný pipeline na extrakci tabulek dosahující velmi dobré úspěšnosti na jednotlivých procesních úkonech. Náš model je schopen extrahovat tabulky v reálném čase, kde každá stránka je naším modelem zpracována jen za několik málo sekund. Náš hlavní přínos spočívá v představení nového prohledávacího algoritmu, využívaného v metodě projekčního profilování. Dále jsme do naší pipeline šikovně implementovali klasické metody zpracování obrazu, které jsou mnohem rychlejší než neuronové sítě plnící stejnou funkci. K tomu jsme vytvořili celkem 4 manuálně anotované datasety, kde nejvíce přínosný je dataset pro detekci tabulky. Velmi kladně také hodnotíme práci odvedenou na trénování modelů s využitím HELIOS clusteru. Proto byl celý projekt pro nás přínosný v mnoha aspektech.
 
-Naším dalším plánem je vylepšit model pro detekci struktury a celý software nabídnout firmám ať už ve veřejném, nebo soukromém sektoru.
+Naším dalším plánem je vylepšit model pro detekci struktury a celý software pak případně nabídnout firmám ať už ve veřejném, nebo soukromém sektoru.
 
 Pro trénování a testování jsme využívali <a href="http://2nasbyo.257.cz/" target="_blank">FJFI HELIOS cluster</a>, zejména NVIDIA Tesla V100 GPU. Dále pak MacBook M1 Pro.
 
