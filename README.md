@@ -150,7 +150,7 @@ Při převádění detekovaných objektů do typu *Table Object* postupujeme ná
 1. Detekce gridu tabulky (výstupem je pravidelná mřížka tabulky - bez uvažování sloučených buňek)
 2. Detekce objektů SC, PRH, TCH
 
-V obou případech lze postupovat přímočaře, a tedy Table Object sestrojit přesně podle detekovaných boundingboxů (buňky bychom získali vypočítáním průsečíků bounding boxů Table row, Table column a např. do objektu Spanning cell by spadaly všechny buňky, které se s ním překrývají). Tento přístup ovšem není efektivní, neboť až příliš spoléhá na naprostou přesnost detekce struktury tabulky, a proto jsme přistoupili k využití clusteringové metody DBSCAN. Při hledání gridu nejprve projektujeme bounding boxy příslušných objektů na osy x a y, kde Core points na osách x a y představují body, kterými má procházet mřížka tabulky. Takovýto postup nám umožní eliminovat alespoń některé chyby modelu.
+V obou případech lze postupovat přímočaře, a tedy Table Object sestrojit přesně podle detekovaných boundingboxů (buňky bychom získali vypočítáním průsečíků bounding boxů Table row, Table column a např. do objektu Spanning cell by spadaly všechny buňky, které se s ním překrývají). Tento přístup ovšem není efektivní, neboť až příliš spoléhá na naprostou přesnost detekce struktury tabulky, a proto jsme přistoupili k využití clusteringové metody DBSCAN. Při hledání gridu nejprve projektujeme bounding boxy příslušných objektů na osy x a y, kde Cluster centroids na osách x a y představují body, kterými má procházet mřížka tabulky. Takovýto postup nám umožní eliminovat alespoń některé chyby modelu.
 
 Detekci objektů SC, PRH, TCH pak provádíme obdobně, pouze je zde navíc potřeba řešit případné překrývání jednotlivých objektů. Níže jsou zobrazené body projektované na osy x a y (před následovným clusteringem).
 ![Average time](DBSCAN.png "DBSCAN during Table reconstruction")
@@ -174,7 +174,11 @@ Celé vyhodnocení je dostupné zde: <a href="https://drive.google.com/drive/fol
 O běh celého programu se stará třída `TabuVision` v souboru *TabuVision.py*, jejíž použití je demonstrováno v přiloženém notebooku `TabuVision.ipynb`. Analyzovat lze jak pouhé obrázky (formátu *.jpg*, *.png*), tak celé dokumenty formátu *.pdf*. V případě stačí do atributu třídy `TabuVision` nazvaném `allowed_suffix_others` přidat požadovanou příponu spolu s funkcí, který takový soubor otevře a převede na list obrázků typu `PIL.Image`.
 
 
-Kvůli významu kroku detekce struktury tabulky jsme vyhodnotili, že pro robustnost celého programu je nutné, model dále vylepšovat (například pomocí metod/návrhů, které jsou nastíněny výše). Velkou výzvou je pak velká variabilita druhů a podob tabulek z různých odvětví pro obecné použití, ale také konkrétní use cases.
+Kvůli významu kroku detekce struktury tabulky jsme vyhodnotili, že pro zvýšení robustnosti celého programu je vhodné, model dále vylepšovat (například pomocí metod/návrhů, které jsou nastíněny výše). Velkou výzvou je pak velká variabilita druhů a podob tabulek z různých odvětví pro obecné použití, ale také konkrétní use cases. Jednoduchým vylepšením je pak nahradit náš model pro detekci struktury již zmiňovaným TATR modelem (konkrétně ve verzi TATR 1.1 All).
+
+Výsledkem celého projektu je sofistikovaný pipeline na extrakci tabulek dosahující velmi dobré úspěšnosti na jednotlivých procesních úkonech. Náš model je schopen extrahovat tabulky v reálném čase, kde každá stránka je naším modelem zpracována jen za několik málo sekund. Náš hlavní přínos spočívá v představení nového prohledávacího algoritmu, využívaného v metodě projekčního profilování. Dále jsme do naší pipeline šikovně implementovali klasické metody zpracování obrazu, které jsou mnohem rychlejší než neuronové sítě plnící stejnou funkci. K tomu jsme vytvořili celkem 4 manuálně anotované datasety, kde nejvíce přínosný je dataset pro detekci tabulky. Velmi kladně také hodnotíme práci odvedenou na trénování modelů a celkově práci s HELIOS clusterem. Proto byl celý projekt pro nás přínosný v mnoha aspektech.
+
+Naším dalším plánem je vylepšit model pro detekci struktury a celý software nabídnout firmám ať už ve veřejném, nebo soukromém sektoru.
 
 Pro trénování a testování jsme využívali <a href="http://2nasbyo.257.cz/" target="_blank">FJFI HELIOS cluster</a>, zejména NVIDIA Tesla V100 GPU. Dále pak MacBook M1 Pro.
 
