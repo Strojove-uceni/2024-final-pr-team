@@ -97,21 +97,24 @@ Běžně používané metody pro detekci skew jsou Hough Transform, Randon Trans
 ![Average time](AvgTime.png "Average time")
 
 Z grafů plyne, že náš algoritmus je při požadovaném rozlišení 0.03 stupně 38 krát rychlejší než Full Search algoritmus a 1.6 krát rychlejší než Binary Search algoritmus.
+
 ### Detekce struktury tabulky (sloupce a řádky)
 
 #### Dataset
-Dataset pro detekci struktury tabulky je dostupný zde <a href="/Users/vojtechremis/Desktop/Projects/TabuVision/TestIMGs/test_1.png" target="_blank">PubTables-1M (Table Structure Recognition Subset)</a>. Jedná se o 947 642 obrázků oříznutých tabulek s anotacemi jejich struktury,
+Dataset pro detekci struktury tabulky je dostupný zde <a href="https://www.kaggle.com/datasets/bsmock/pubtables-1m-structure" target="_blank">PubTables-1M (Table Structure Recognition Subset)</a>. Jedná se o 947 642 obrázků oříznutých tabulek s anotacemi jejich struktury,
 tedy označené bounding boxy následujících tříd: `table column`, `table spanning cell`, `table projected row header`, `table row`, `table column header`, `table`.
 
-	•	Table: ohraničení tabulky
-	•	Table column: sloupec tabulky
-	•	Table row: řádek tabulky
-	•	Table spanning cell: buňka pokrývající více buněk
-	•	Table projected row header: záhlaví řádku tabulky
-	•	Table column header: záhlaví sloupce tabulky
+	• Table: ohraničení tabulky
+	• Table column: sloupec tabulky
+	• Table row: řádek tabulky
+	• Table spanning cell: buňka pokrývající více buněk (sloučená buňka)
+	• Table projected row header: záhlaví řádku tabulky (rovněž může pokrývat více buněk)
+	• Table column header: záhlaví sloupce tabulky (rovněž může pokrývat více buněk)
+ 
+Jedná se o tabulky, které se nacházely na stránkách, které obsahoval dataset Table Detection (viz výše).
 
 #### Metody
-Pro detekci objektů jsme zprvu využili architekturu, která v případě detekce tabulky poskytovala nejlepší výsledky, tedy model YOLOv8 Medium.
+Pro detekci objektů jsme zprvu využili architekturu, která v případě detekce tabulky poskytovala nejlepší výsledky, tedy model YOLOv8 Medium. 
 
 Oproti případu detekce tabulek, zde bohužel nemáme k dispozici náš vlastní anotovaný dataset, a tak jsme se pokusili rozdílnost našich dat od PubTables-1M kompenzovat použitím augmentačních transformací, které měly alespoň z části imitovat scanované dokumenty:
 
@@ -131,16 +134,31 @@ Oproti případu detekce tabulek, zde bohužel nemáme k dispozici náš vlastn�
    - **Množství šumu**: 0.004
    - **Poměr Salt vs. Pepper**: 0.5
 
-S použitím výše uvedených transformací jsme trénovali síť YOLOv8 Nano, která má zhruba 8 krát méně trénovatelných parametrů. Ačkoliv je její rychlost (jak trénovací, tak inferenční) mnohem vyšší, naměřené metriky o tolik nižší než v případu většího modelu Medium nejsou.
-
+S použitím výše uvedených transformací jsme trénovali síť YOLOv8 Nano, která má zhruba 8 krát méně trénovatelných parametrů. Ačkoliv je její rychlost (jak trénovací, tak inferenční) mnohem vyšší, naměřené metriky o tolik nižší než v případu většího modelu Medium nejsou. Námi pozorované schopnosti modelu učeného s použitím transformací jsou lepší než u modelu bez jejich použití (a to i přes dosažení nižích metrik úspěšnosti), avšak kvůli absenci anotovaného datasetu, nemůžeme tuto domněnku exaktně potvrdit.
 
 | **name**           | **Precision** | **Recall** | **mAP@50** | **mAP@50-95** | **Inference Time [ms]** |
 |----------------------|---------------|------------|------------|---------------|--------------------------|
-| YOLOv8m              | 0.957         | 0.957      | 0.978      | 0.924         | 1.0012                   |
-| **YOLOv8n (augm)**   | 0.936         | 0.935      | 0.961      | 0.892         | 0.2648                   |
+| YOLOv8m              | 0.957         | 0.957      | 0.978      | 0.924         | 1001.2                   |
+| **YOLOv8n (augm)**   | 0.936         | 0.935      | 0.961      | 0.892         | 264.8                    |
 
-#### Závěr
-Výkon modelu na našem typu dat by jistě zlepšilo, pokud bychom měli k dispozici data anotovaná - což bylo z důvodu časové náročnosti nemožné, avšak možnost nechat naší aktuální síť výřezy předanotovat může tuto variantu učinit proveditelnou. Problémem mohou být také speciální typy objektů (zejména `spanning cells`), kde při chybě, která z pohledu běžných vyhodnocovacích metrik není příliš veliká, ale i přesto může kvůli provázanosti struktury tabulek na výstupu modelu zavést velké chyby. A proto by dle našeho názoru schopnosti modelu na naší úloze vylepšilo, pokud by byl při učení síťe dbán větší důraz na tyto třídy.
+#### Postprocessing a reprezentace tabulky
+Výstup z modelu (pětice hodnot - bounding box a třída) je následně potřeba převést na reprezentaci tabulky (*Table Object*). Tím se rozumí struktura, kterou bude poté možné exportovat třeba do HTML nebo jiného formátu. V naší implementci jsem definovali třídu Table (respektive `Table` -> `TableRow`, `TableColumn` -> `TableCell`), tj. do takové podoby detekované objekty převádíme. Buňky 
+
+V případě objektů typu `Spanning cell` je v naší implementaci potřeba označit všechny buňky, které do něj náleží (spolu s vyznačením počáteční buňky - v levém horním roku objektu Spanning cell). V případě objektů typu `Table projected row header` a `Table column header` je potřeba provést obdobný proces, pokud stejně jako Spanning cell zasahují do více řádků. Navíc je ještě k příslušným buńkám přidán příznak.
+
+Při převádění detekovaných objektů do typu *Table Object* postupujeme následujícím způsobem:
+1. Detekce gridu tabulky (výstupem je pravidelná mřížka tabulky (bez uvažování sloučených buňek)
+2. Detekce objektů SC, PRH, TCH
+
+V obou případech lze postupovat přímočaře, a tedy Table Object sestrojit přesně podle detekovaných boundingboxů (buňky bychom získali vypočítáním průsečíků bounding boxů Table row, Table column a např. do objektu Spanning cell by spadaly všechny buňky, které se s ním překrývají). Tento přístup ovšem není efektivní, neboť až příliš spoléhá na naprostou přesnost detekce struktury tabulky, a proto jsme přistoupili k využití clusteringové metody DBSCAN. Při hledání gridu nejprve projektujeme bounding boxy příslušných objektů na osy x a y, kde Core points na osách x a y představují body, kterými má procházet mřížka tabulky. Takovýto postup nám umožní eliminovat alespoń některé chyby modelu.
+
+Detekci objektů SC, PRH, TCH pak provádíme obdobně, pouze je zde navíc potřeba řešit případné překrývání jednotlivých objektů.
+
+![Average time](DBSCAN.png "DBSCAN during Table reconstruction")
+
+#### Zhodnocení
+Detekce struktury patří k nejsložitějším částem celé pipeline, ale zároveň má i schopnost, celý její výstup znehodnotit. Výkon modelu na našem typu dat by jistě zlepšilo, pokud bychom měli k dispozici data anotovaná - což bylo z důvodu časové náročnosti nemožné, avšak možnost nechat naší aktuální síť výřezy předanotovat může tuto variantu učinit proveditelnou. Problémem mohou být také speciální typy objektů (zejména `spanning cells`), kde při chybě, která z pohledu běžných vyhodnocovacích metrik není příliš veliká, ale i přesto může kvůli provázanosti struktury tabulek na výstupu modelu zavést velké chyby. A proto by dle našeho názoru schopnosti modelu na naší úloze vylepšilo, pokud by byl při učení síťe dbán větší důraz na tyto třídy.
+Pozn.: jeden z modelů publikovaný autory datasetu PubTables dosánul hodnoty <a href="https://github.com/microsoft/table-transformer" target="_blank">mAP50 0.97</a>, což je obdobné jako v případě našho modelu.
 
 ### Rozpoznání textu uvnitř jednotlivých buněk tabulky
 
