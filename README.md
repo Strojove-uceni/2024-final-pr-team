@@ -86,7 +86,7 @@ Celý testovací dataset obrázků stránek s náhodným skew je k dispozici zde
 Dataset obsahuje celkem 5000 obrázků náhodně vybraných z <a href="https://huggingface.co/datasets/bsmock/pubtables-1m/tree/main" target="_blank">PubTables1M-Structure</a>. U nich jsme předpokládali, že jsou v dokonale horizontální poloze. Přidali jsme jim tedy náhodný skew z generovaný z Normálního rozdělení N(0,3). Při rotaci jsme použili mediánový padding. Tuto hodnotu skew jsme zároveň uložili do názvu obrázku (na konec).
 
 #### Metody
-Běžně používané metody pro detekci skew jsou Hough Transform, Randon Transform a nebo zjednodušená analogie Radon Transform, projekční profilování (PP). Právě poslední metodu jsme využili. Metoda je schopna určit úhel skew s libovolnou přesností. Problém u této metody je, že s vyšší přesností roste její výpočetní náročnost. Proto je potřeba využít nějakého prohledávacího algoritmu, který minimalizuje počet prohledávaných úhlů. Přišli jsme s vlastním prohledávacím algoritmem, který je podobný Fibonacci Search algoritmu, ale místo Fibonacciho posloupnosti využívá geometrickou. Tento algoritmus analyticky minimalizuje počet prohledávaných úhlů. Jeho teoretické odvození se sepsáno výše v PDF souboru "Skew_detection_algorithm.pdf". Tento algoritmus je rychlejší než Binary search algoritmus a častokrát dokonce přesnější než Full search algoritmus, který prohledává všechny úhly na daném rozlišení. Následují dva grafy srovnání úspěšnosti pomocí metriky MAE (Mean Absolute Error) a pak graf celkového času inference jednoho obrázku. Oba v závislosti na požadovaném rozlišení (při prohledávání celkového rozsahu od -10 do 10 stupňů skew). 
+Běžně používané metody pro detekci skew jsou Hough Transform, Randon Transform a nebo zjednodušená analogie Radon Transform, projekční profilování (PP). Právě poslední metodu jsme využili. Metoda je schopna určit úhel skew s libovolnou přesností. Problém u této metody je, že s vyšší přesností roste její výpočetní náročnost. Proto je potřeba využít nějakého prohledávacího algoritmu, který minimalizuje počet prohledávaných úhlů. Přišli jsme s vlastním prohledávacím algoritmem, který je podobný Fibonacci Search algoritmu, ale místo Fibonacciho posloupnosti využívá geometrickou. Tento algoritmus analyticky minimalizuje počet prohledávaných úhlů. Jeho teoretické odvození se sepsáno výše v PDF souboru `Skew_detection_algorithm.pdf`. Tento algoritmus je rychlejší než Binary search algoritmus a častokrát dokonce přesnější než Full search algoritmus, který prohledává všechny úhly na daném rozlišení. Následují dva grafy srovnání úspěšnosti pomocí metriky MAE (Mean Absolute Error) a pak graf celkového času inference jednoho obrázku. Oba v závislosti na požadovaném rozlišení (při prohledávání celkového rozsahu od -10 do 10 stupňů skew). 
 
 ![MAE](MAE.png "MAE")
 
@@ -97,7 +97,17 @@ Z grafů plyne, že náš algoritmus je při požadovaném rozlišení 0.03 stup
 
 ### Rozpoznání textu
 
+#### Dataset
+Pro rozpoznání textu jsme udělali vlastní dataset, kde jsme z tabulek z <a href="https://huggingface.co/datasets/bsmock/pubtables-1m/tree/main" target="_blank">PubTables1M-Structure</a> vyřízli buňky pomocí našeho výsledného modelu pro detekci struktury a tyto buňky manuálně olbelovali. K tomu jsme si vytvořili labelovací nástroj dostupný zde: <a href="https://drive.google.com/drive/folders/1an-eLrnwONomA2d6fbbfuQPfmFNnhuhf?usp=drive_link" target="_blank">Datasety</a> pod názvem `LabellingGUI.py`. Dataset pak obsahuje složku `images`, kde jsou obrázky výřezů a pak složku `labels`, kde jsou jim příslušné textové soubory obsahující text, co je na obrázku napsaný.
+
+#### Metody
+Uvažovali jsme celkem 4 metody: PyTesseract, EasyOCR, PaddleOCR, naše vlastní OCR. EasyOCR má velkou nevýhodu, že je optimalizovaná pro GPU a na CPU je velmi pomalá, proto jsme ji dále neuvažovali. Naše vlastní OCR (CNN feature extractor a LSTM) fungovala poměrně dobře na jednořádkové texty, ale na našem testovacím datasetu nebyla zdaleka tak dobrá jako zbylé dvě uvažované metody. Do ušího výběru se pak dostaly metody PyTesseract a PaddleOCR. U obou metod opět mělo velký přínos sofistikované předzpracování obrázku, které nám samotné pomohlo vylepšit CER (Character Error Rate) z 8.88% (bez předzpracování) na výsledných 2.33% (s předzpracováním) s použitím PyTesseract OCR s configem PSM 6. S PaddleOCR jsme dosáhli nejlepší CER 9.5%. 
+
+Celé vyhodnocení je dostupné zde: <a href="https://drive.google.com/drive/folders/1JAqTkgyboK71otH2tUDVGiaHpi_XyXc_?usp=drive_link" target="_blank">Vyhodnocení OCR</a>
+
 ## Shrnutí
+
+
 ## Odkazy
 Většina použitých kódů je dostupná ke stažení zde: <a href="https://drive.google.com/drive/folders/1VXDQpVIAQ3XSNKVEbv4OpxZIaYCLkBbK?usp=sharing" target="_blank">TabuVision Codes</a>
 
