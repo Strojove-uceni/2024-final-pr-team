@@ -1,15 +1,36 @@
 # TabuVision
 
-## Cíle projektu
-1) Hlavním cílem projektu je extrahovat tabulky, obsahující relevatní informace, z výkazů zisků a ztrát volně dostupných na webu Ministerstva spravedlnosti https://justice.cz/
+## Cíl projektu
+Hlavním cílem projektu je vytvořit software umožňující s co nejvyšší úspěšností (a pokud možno v přijetelném výpočetním čase) extrahovat tabulky, obsahující relevatní finanční informace, z výkazů zisků a ztrát volně dostupných na webu Ministerstva spravedlnosti https://justice.cz/
 
 ## Postup
-Celý postup se dá shrnout do 4 kroků:
-1) Detekce tabulky
-2) Korekce rotace abulky (napřímení do standardní polohy)
-3) Detekce struktury tabulky (sloupce a řádky)
-4) Rozpoznání textu uvnitř jednotlivých buněk tabulky
+Celý postup se dá shrnout do 5 kroků:
+1) Korekce orientace stránky
+2) Detekce tabulky na stránce
+3) Korekce skew tabulky (napřímení do horizontální polohy)
+4) Detekce struktury tabulky (sloupce a řádky)
+5) Rozpoznání textu uvnitř jednotlivých buněk tabulky
 
+### Korekce orientace stránky
+Pro korekci orientace stránky jsme nejprve vyzkoušeli Pytesseract (python wrapper pro Google Tesseract-OCR engine), konkrétně funkci `image_to_osd`. Pytesseract nakonec dosáhl tak excelentních výsledků, že nebylo potřeba ladit jiné (zpravidla co do úspěšnosti horší) modely na rozpoznávání orientace skriptu. Klíčové bylo správně obrázek předzpracovat. Vlivem správného předzpracování obrázku jsme docílíli zlepšení úspěšnosti o 13,45 procentních bodů (z 85,68% na 99,13%). Využívali jsme Pytesseract `image_to_osd` s Page Segmentation Mode 0 (PSM 0). Nejprve jsme zkoušeli vkládat nepředzpracované obrázky již vyříznutých tabulek. To se neosvědčilo. Poté jsme zkoušeli vkládat celé stránky různě předzpracované. Výsledky ukazuje následující tabulka.
+
+| **PyTesseract (PSM 0)**                        | **accuracy [%]** |
+|------------------------------------------------|------------------:|
+| celé stránky (Sauvola - w = 15, k = 0.2, lang = ces)       | 99.13            |
+| celé stránky (Sauvola - w = 15, k = 0.2)       | 99.10            |
+| celé stránky (Sauvola - w = 15, k = 0.3)       | 98.97            |
+| celé stránky (Sauvola - w = 15, k = 0.05)      | 98.90            |
+| celé stránky (Sauvola - w = max(img_width,img_height), k = 0.2) | 98.15            |
+| celé stránky (Sauvola) + korekce skew          | 96.97            |
+| celé stránky (RGB) + korekce skew              | 94.12            |
+| celé stránky (RGB)                             | 93.77            |
+| celé stránky (Gaussian Blur 5x5 + Sauvola)     | 87.47            |
+| výřezy tabulek (RGB)                           | 85.68            |
+
+Kde Sauvola je metoda adaptivního prahování (w = window size, k = parametr metody), korekce skew znamená, že jsme stránku nejprve narovnali pomocí algoritmu projekčního profilování.
+
+Celý testovací dataset je k dispozici zde: <a href="https://drive.google.com/drive/folders/1p_eGllQDmgyUTWAXq2Z7LjEKfZ6MTLlS?usp=drive_link" target="_blank">Rotation dataset</a>
+Dataset obsahuje 6757 obrázků. Obrázky byly vytažené z PDF souborů výkazů zisků a ztrát stažených z webu Ministerstva spravedlnosti. Jednotlivé obrázky jsme manuálně prošli a zrotovali (o 0,90,180, nebo 270 stupňů) do standardní polohy. Poté jsme přidali náhodně kvadraturní rotaci (0,90,180, nebo 270 stupňů). Hodnotu rotace jsme uložili do jména obrázku. Testování probíhalo tak, že jsme přičetli +1 za každou správně uhodnutou rotaci pomocí Pytesseract `image_to_osd`. Accuracy pak vznikla jako počet správně predikovaných rotací / počet obrázků. 
 ### Detekce tabulky
 
 #### Datasety
