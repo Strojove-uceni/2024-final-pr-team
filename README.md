@@ -99,6 +99,49 @@ Běžně používané metody pro detekci skew jsou Hough Transform, Randon Trans
 Z grafů plyne, že náš algoritmus je při požadovaném rozlišení 0.03 stupně 38 krát rychlejší než Full Search algoritmus a 1.6 krát rychlejší než Binary Search algoritmus.
 ### Detekce struktury tabulky (sloupce a řádky)
 
+#### Dataset
+Dataset pro detekci struktury tabulky je dostupný zde <a href="/Users/vojtechremis/Desktop/Projects/TabuVision/TestIMGs/test_1.png" target="_blank">PubTables-1M (Table Structure Recognition Subset)</a>. Jedná se o 947 642 obrázků oříznutých tabulek s anotacemi jejich struktury,
+tedy označené bounding boxy následujících tříd: `table column`, `table spanning cell`, `table projected row header`, `table row`, `table column header`, `table`.
+
+	•	Table: ohraničení tabulky
+	•	Table column: sloupec tabulky
+	•	Table row: řádek tabulky
+	•	Table spanning cell: buňka pokrývající více buněk
+	•	Table projected row header: záhlaví řádku tabulky
+	•	Table column header: záhlaví sloupce tabulky
+
+#### Metody
+Pro detekci objektů jsme zprvu využili architekturu, která v případě detekce tabulky poskytovala nejlepší výsledky, tedy model YOLOv8 Medium.
+
+Oproti případu detekce tabulek, zde bohužel nemáme k dispozici náš vlastní anotovaný dataset, a tak jsme se pokusili rozdílnost našich dat od PubTables-1M kompenzovat použitím augmentačních transformací, které měly alespoň z části imitovat scanované dokumenty:
+
+1. **GaussianBlur**: Náhodně aplikováno gaussovské rozostření s velikostí jádra 3x3.
+   - **Velikost jádra**: (3, 3)
+
+2. **Downscale**: Náhodné zmenšení obrázků o faktor v rozmezí 0.55 až 0.75.
+   - **Rozmezí měřítka**: (0.55, 0.75)
+
+3. **ColorJitter**: Náhodně upraveny jas, kontrast, sytost a odstín obrázků.
+   - **Jas**: ±0.1
+   - **Kontrast**: ±0.1
+   - **Sytost**: ±0.1
+   - **Odstín**: ±0.1
+
+4. **SaltAndPepper**: Přidání náhodného šumu typu "sůl a pepř".
+   - **Množství šumu**: 0.004
+   - **Poměr Salt vs. Pepper**: 0.5
+
+S použitím výše uvedených transformací jsme trénovali síť YOLOv8 Nano, která má zhruba 8 krát méně trénovatelných parametrů. Ačkoliv je její rychlost (jak trénovací, tak inferenční) mnohem vyšší, naměřené metriky o tolik nižší než v případu většího modelu Medium nejsou.
+
+
+| **name**           | **Precision** | **Recall** | **mAP@50** | **mAP@50-95** | **Inference Time [ms]** |
+|----------------------|---------------|------------|------------|---------------|--------------------------|
+| YOLOv8m              | 0.957         | 0.957      | 0.978      | 0.924         | 1.0012                   |
+| **YOLOv8n (augm)**   | 0.936         | 0.935      | 0.961      | 0.892         | 0.2648                   |
+
+#### Závěr
+Výkon modelu na našem typu dat by jistě zlepšilo, pokud bychom měli k dispozici data anotovaná - což bylo z důvodu časové náročnosti nemožné, avšak možnost nechat naší aktuální síť výřezy předanotovat může tuto variantu učinit proveditelnou. Problémem mohou být také speciální typy objektů (zejména `spanning cells`), kde při chybě, která z pohledu běžných vyhodnocovacích metrik není příliš veliká, ale i přesto může kvůli provázanosti struktury tabulek na výstupu modelu zavést velké chyby. A proto by dle našeho názoru schopnosti modelu na naší úloze vylepšilo, pokud by byl při učení síťe dbán větší důraz na tyto třídy.
+
 ### Rozpoznání textu uvnitř jednotlivých buněk tabulky
 
 #### Dataset
