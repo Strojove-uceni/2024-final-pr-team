@@ -74,6 +74,8 @@ Vyzkoušeli jsme celkem 4 architektury modelů standardně používané pro Obje
 | fine-tuned faster-RCNN (no freeze)           | 49.66 ± 25.07            | 776                             |
 | Sauvola + Morphology                         | 23.13 ± 31.50            | 314                             |
 
+YOLOv8 Medium (binary) je model učený na Našem datasetu ale předtím prahovaném Sauvola metodou.
+
 Testovací dataset obsahuje náhodně vybraných 10% obrázků z původního datasetu 6676 obrázků. Tedy 670 testovacích obrázků (508 obrázků s GT boxy) a celkem tedy 633 GT boxů. Prediction a GT bounding boxy jsou spárovány pomocí Greedy (Naive) matching algoritmu a je vypočítáno IoU takto vzniklých dvojic. Ke každému Prediction bounding boxu se tak najde jeho dvojice mezi GT bounding boxy a napočítá se IoU. Z těchto IoU se pak vypočítá průměr a std. Dále se měří průměrný čas inference modelu s jedním obrázkem.
 
 Z testování jsme vybrali jako nejlepší model YOLOv8 Medium, který byl trénován pouze na Našem datasetu. YOLOv11 Large je sice v průměru o 0,02 procentního bodu lepší, ale jeho průměrný čas inference s jedním obrázkem je výrazně vyšší.
