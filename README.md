@@ -12,7 +12,18 @@ Celý postup se dá shrnout do 5 kroků:
 5) Rozpoznání textu uvnitř jednotlivých buněk tabulky
 
 ### Korekce orientace stránky
-Pro korekci orientace stránky jsme nejprve vyzkoušeli Pytesseract (python wrapper pro Google Tesseract-OCR engine), konkrétně funkci `image_to_osd`. Pytesseract nakonec dosáhl tak excelentních výsledků, že nebylo potřeba ladit jiné (zpravidla co do úspěšnosti horší) modely na rozpoznávání orientace skriptu. Klíčové bylo správně obrázek předzpracovat. Vlivem správného předzpracování obrázku jsme docílíli zlepšení úspěšnosti o 13,45 procentních bodů (z 85,68% na 99,13%). Využívali jsme Pytesseract `image_to_osd` s Page Segmentation Mode 0 (PSM 0). Nejprve jsme zkoušeli vkládat nepředzpracované obrázky již vyříznutých tabulek. To se neosvědčilo. Poté jsme zkoušeli vkládat celé stránky různě předzpracované. Výsledky ukazuje následující tabulka.
+
+#### Dataset
+
+Celý testovací dataset obrázků náhodně zrotovaných stránek je k dispozici zde: <a href="https://drive.google.com/drive/folders/1YPjvytkDtZQEkFvUhUW3zskW62ToO8WR?usp=drive_link" target="_blank">Rotation dataset</a>
+
+Dataset obsahuje 6676 obrázků stránek. Obrázky stránek byly vytažené z PDF souborů výkazů zisků a ztrát stažených z webu Ministerstva spravedlnosti. Jednotlivé obrázky jsme manuálně prošli a zrotovali (o 0,90,180, nebo 270 stupňů) do standardní polohy. Poté jsme přidali náhodně kvadraturní rotaci (0,90,180, nebo 270 stupňů). Při rotaci jsme použili mediánový padding. Hodnotu rotace jsme uložili do jména obrázku (na konec).
+
+Testovací dataset pro korekci orientace výřezů tabulek jsme se z důvodu nízké úspěšnosti PyTesseract modelu rozhodli neuvěřejňovat. 
+
+
+#### Metoda
+Pro korekci orientace stránky jsme nejprve vyzkoušeli PyTesseract (python wrapper pro Google Tesseract-OCR engine), konkrétně funkci `image_to_osd`. PyTesseract nakonec dosáhl tak excelentních výsledků, že nebylo potřeba ladit jiné (zpravidla co do úspěšnosti horší) modely na rozpoznávání orientace skriptu. Klíčové bylo správně obrázek předzpracovat. Vlivem správného předzpracování obrázku jsme docílíli zlepšení úspěšnosti o 13,45 procentních bodů (z 85,68% na 99,13%). Využívali jsme PyTesseract `image_to_osd` s Page Segmentation Mode 0 (PSM 0). Nejprve jsme zkoušeli vkládat nepředzpracované obrázky již vyříznutých tabulek. To se neosvědčilo. Poté jsme zkoušeli vkládat celé stránky různě předzpracované. Výsledky ukazuje následující tabulka.
 
 | **PyTesseract (PSM 0)**                        | **accuracy [%]** |
 |------------------------------------------------|------------------:|
@@ -29,31 +40,55 @@ Pro korekci orientace stránky jsme nejprve vyzkoušeli Pytesseract (python wrap
 
 Kde Sauvola je metoda adaptivního prahování (w = window size, k = parametr metody), korekce skew znamená, že jsme stránku nejprve narovnali pomocí algoritmu projekčního profilování.
 
-Celý testovací dataset je k dispozici zde: <a href="https://drive.google.com/drive/folders/1p_eGllQDmgyUTWAXq2Z7LjEKfZ6MTLlS?usp=drive_link" target="_blank">Rotation dataset</a>
-Dataset obsahuje 6757 obrázků. Obrázky byly vytažené z PDF souborů výkazů zisků a ztrát stažených z webu Ministerstva spravedlnosti. Jednotlivé obrázky jsme manuálně prošli a zrotovali (o 0,90,180, nebo 270 stupňů) do standardní polohy. Poté jsme přidali náhodně kvadraturní rotaci (0,90,180, nebo 270 stupňů). Hodnotu rotace jsme uložili do jména obrázku. Testování probíhalo tak, že jsme přičetli +1 za každou správně uhodnutou rotaci pomocí Pytesseract `image_to_osd`. Accuracy pak vznikla jako počet správně predikovaných rotací / počet obrázků. 
+Testování probíhalo tak, že jsme přičetli +1 za každou správně uhodnutou rotaci pomocí Pytesseract `image_to_osd`. Accuracy pak vznikla jako počet správně predikovaných rotací / počet obrázků.
+
 ### Detekce tabulky
 
 #### Datasety
 
 ##### PubTables1M - Detection
-Jakožto dataset pro účely detekce tabulky v obrázku dokumentu jsme využili rozsáhlý dataset PubTables1M-Detection (https://huggingface.co/datasets/bsmock/pubtables-1m/tree/main) čítající 575305 obrázků stránek dokumentů, ve kterých jsou anotovány tabulky ve formě bounding boxů do dvou tříd "table" a "rotated_table". Obrázky jsou sesbírané především z věděckých článků. Obrázky a anotace z tohoto datasetu jsou rozděleny na train/val/test v poměru 460589/57591/57125 vzorků. Tento dataset jsem využili k předtrénování některých modelů. Takto předtrénované modely jsou později označeny jako "fine-tuned".
+Jakožto dataset pro účely detekce tabulky v obrázku dokumentu jsme využili rozsáhlý dataset <a href="https://huggingface.co/datasets/bsmock/pubtables-1m/tree/main" target="_blank">PubTables1M-Detection</a> čítající 575305 obrázků stránek dokumentů, ve kterých jsou anotovány tabulky ve formě bounding boxů do dvou tříd "table" a "rotated_table". Obrázky jsou sesbírané především z věděckých článků. Obrázky a anotace z tohoto datasetu jsou rozděleny na train/val/test v poměru 460589/57591/57125 vzorků. Tento dataset jsme využili k předtrénování některých table detection modelů. Takto předtrénované modely jsou později označeny v tabulce vyhodnocení odelů jako "fine-tuned".
 
 ##### Náš dataset
-Jako druhý dataset jsme manuálně anotovali tabulky v 6676 obrázcích, které jsme získali ze stažených výkazů zisků a ztrát ze stránek Ministerstva spravedlnosti https://justice.cz/. Tyto výkazy jsou PDF dokumenty obsahující naskenované stránky výkazů nebo stránky v digitální podobě. Tabulky jsme anotovali v prostředí CVAT pomocí bounding boxů a jednou třídou "table". Zhruba 10-20% obrázků v datasetu neobsahuje žádnou tabulku.
+Jako druhý dataset jsme manuálně anotovali tabulky v 6676 obrázcích, které jsme získali ze stažených výkazů zisků a ztrát ze stránek Ministerstva spravedlnosti https://justice.cz/ - stejné obrázky jako při testování modelů na korekci rotace. Tyto výkazy jsou PDF dokumenty obsahující naskenované stránky výkazů nebo stránky v digitální podobě. Tabulky jsme anotovali v prostředí CVAT pomocí bounding boxů a jednou třídou "table". Zhruba 10-20% obrázků v datasetu neobsahuje žádnou tabulku.
 
 #### Metody
 
 ##### Klasické metody zpracování obrazu
-Prvně jsme se pokusili detekovat tabulky pomocí klasických metod zpracování obrazu. K segmentaci textu a mřížky tabulky jsme využili metodu Sauvola adaptive thresholding. Dále jsme pak potřebovali extrahovat mřížku tabulky. Předpokládali jsme, že tabulka má mřížku a samotná tabulky je dokonale narovnána do standardní polohy. Poté jsme použili morfologický opening s vektory jedniček 1x40 a také 40x1. Tyto dva výstupy z openingů jsme pak zkombinovali do jednoho výstupu pomocí bitového OR (sjednocení bílých pixelů). Následně jsme pak pomocí funkce findContours z OpenCV našli externí kontury a těm určily minimální ohraničující obdélník. Tento obdélník jsme pak považovali za bounding box tabulky s třídou "table". Výrazným omezením této metody jsou předpoklady dokonale standardní orientace tabulky a také, že tabulky obsahuje mřížku. Takové tabulky se ovšem v datasetu vyskytují zřídka (odhadem 30% tabulek).
+Prvně jsme se pokusili detekovat tabulky pomocí klasických metod zpracování obrazu. K segmentaci textu a mřížky tabulky jsme využili metodu Sauvola adaptive thresholding. Dále jsme pak potřebovali extrahovat mřížku tabulky. Předpokládali jsme, že tabulka má mřížku a samotná tabulka je dokonale narovnána do standardní polohy (bez žádné rotace ani skew). Poté jsme použili morfologický opening s vektory jedniček 1x40 a také 40x1. Tyto dva výstupy z openingů jsme pak zkombinovali do jednoho výstupu pomocí bitového OR (sjednocení bílých pixelů). Následně jsme pak pomocí funkce `findContours` z OpenCV našli externí kontury a těm určili minimální ohraničující obdélník. Tento obdélník jsme pak považovali za bounding box tabulky s třídou "table". Výrazným omezením této metody jsou předpoklady dokonale standardní orientace tabulky a také, že tabulky obsahuje mřížku. Takové tabulky se ovšem v datasetu vyskytují zřídka (odhadem 30% tabulek).
 
 ##### Metody založené na hlubokém učení
-Vyzkoušeli jsme celkem 4 architektury modelů standardně používané pro Object detection úkoly. Jsou to YOLOv8 Medium, YOLOv11 Large, RT-DETR Large a Faster-RCNN.
+Vyzkoušeli jsme celkem 4 architektury modelů standardně používané pro Object detection úkoly. Jsou to YOLOv8 Medium, YOLOv11 Large, RT-DETR Large a Faster-RCNN. Následující tabulka ukazuje výsledné srovnání table detection modelů.
 
-### Korekce rotace a skew
+| **name**                                     | **average IoU [%]**      | **average inference time [ms]** |
+|----------------------------------------------|--------------------------:|---------------------------------:|
+| YOLOv11 Large                                | 94.87 ± 11.08            | 396                             |
+| **YOLOv8 Medium**                            | **94.85 ± 11.11**        | **284**                         |
+| fine-tuned YOLOv8 Medium (no freeze)         | 94.71 ± 11.42            | 293                             |
+| fine-tuned YOLOv11 Large (no freeze)         | 94.70 ± 12.44            | 378                             |
+| fine-tuned YOLOv11 Large (freeze 5)          | 94.19 ± 14.43            | 405                             |
+| RT-DETR Large                                | 94.12 ± 11.82            | 1239                            |
+| fine-tuned RT-DETR Large (no freeze)         | 93.68 ± 12.45            | 1219                            |
+| YOLOv8 Medium (binary)                       | 93.40 ± 11.43            | 286                             |
+| fine-tuned faster-RCNN (freeze backbone)     | 50.40 ± 25.94            | 805                             |
+| fine-tuned faster-RCNN (no freeze)           | 49.66 ± 25.07            | 776                             |
+| Sauvola + Morphology                         | 23.13 ± 31.50            | 314                             |
 
-#### Korekce rotace
+Testovací dataset obsahuje náhodně vybraných 10% obrázků z původního datasetu 6676 obrázků. Tedy 670 testovacích obrázků (508 obrázků s GT boxy) a celkem tedy 633 GT boxů. Prediction a GT bounding boxy jsou spárovány pomocí Greedy (Naive) matching algoritmu a je vypočítáno IoU takto vzniklých dvojic. Ke každému Prediction bounding boxu se tak najde jeho dvojice mezi GT bounding boxy a napočítá se IoU. Z těchto IoU se pak vypočítá průměr a std. Dále se měří průměrný čas inference modelu s jedním obrázkem.
 
-Pro korekci rotace jsme 
+Z testování jsme vybrali jako nejlepší model YOLOv8 Medium, který byl trénován pouze na Našem datasetu. YOLOv11 Large je sice v průměru o 0,02 procentního bodu lepší, ale jeho průměrný čas inference s jedním obrázkem je výrazně vyšší.
+
+### Korekce rotace skew
+
+#### Dataset
+Celý testovací dataset obrázků stránek s náhodným skew je k dispozici zde: <a href="https://drive.google.com/drive/folders/1aXV55ico1ymYOPBirWvxImXHgu1_utLr?usp=drive_link" target="_blank">Skew dataset</a>
+
+Dataset obsahuje celkem 5000 obrázků náhodně vybraných z <a href="https://huggingface.co/datasets/bsmock/pubtables-1m/tree/main" target="_blank">PubTables1M-Structure</a>. U nich jsme předpokládali, že jsou v dokonale horizontální poloze. Přidali jsme jim tedy náhodný skew z generovaný z Normálního rozdělení N(0,3). Při rotaci jsme použili mediánový padding. Tuto hodnotu skew jsme zároveň uložili do názvu obrázku (na konec).
+
+#### Metody
+Běžně používané metody pro detekci skew jsou Hough Transform, Randon Transform a nebo zjednodušená analogie Radon Transform, projekční profilování (PP). Právě poslední metodu jsme využili. Metoda je schopna určit úhel skew s libovolnou přesností. Problém u této metody je, že s vyšší přesností roste její výpočetní náročnost. Proto je potřeba využít nějakého prohledávacího algoritmu, který minimalizuje počet prohledávaných úhlů. Přišli jsme s vlastním prohledávacím algoritmem, který je podobný Fibonacci Search algoritmu, ale místo Fibonacciho posloupnosti využívá geometrickou. Tento algoritmus analyticky minimalizuje počet prohledávaných úhlů. Jeho teoretické odvození se sepsáno výše v PDF souboru "Skew_detection_algorithm.pdf". Tento algoritmus je rychlejší než Binary search algoritmus a častokrát dokonce přesnější než Full search algoritmus, který prohledává všechny úhly na daném rozlišení. Následují dva grafy srovnání úspěšnosti pomocí metriky MAE (Mean Absolute Error) a pak graf celkového času inference jednoho obrázku. Oba v závislosti na požadovaném rozlišení (při prohledávání celkového rozsahu od -10 do 10 stupňů skew). 
+
+
 
 ### Detekce struktury
 
