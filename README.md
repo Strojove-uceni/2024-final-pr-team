@@ -88,7 +88,9 @@ Dataset obsahuje celkem 5000 obrázků náhodně vybraných z <a href="https://h
 #### Metody
 Běžně používané metody pro detekci skew jsou Hough Transform, Randon Transform a nebo zjednodušená analogie Radon Transform, projekční profilování (PP). Právě poslední metodu jsme využili. Metoda je schopna určit úhel skew s libovolnou přesností. Problém u této metody je, že s vyšší přesností roste její výpočetní náročnost. Proto je potřeba využít nějakého prohledávacího algoritmu, který minimalizuje počet prohledávaných úhlů. Přišli jsme s vlastním prohledávacím algoritmem, který je podobný Fibonacci Search algoritmu, ale místo Fibonacciho posloupnosti využívá geometrickou. Tento algoritmus analyticky minimalizuje počet prohledávaných úhlů. Jeho teoretické odvození se sepsáno výše v PDF souboru "Skew_detection_algorithm.pdf". Tento algoritmus je rychlejší než Binary search algoritmus a častokrát dokonce přesnější než Full search algoritmus, který prohledává všechny úhly na daném rozlišení. Následují dva grafy srovnání úspěšnosti pomocí metriky MAE (Mean Absolute Error) a pak graf celkového času inference jednoho obrázku. Oba v závislosti na požadovaném rozlišení (při prohledávání celkového rozsahu od -10 do 10 stupňů skew). 
 
+![MAE](MAE.png "MAE")
 
+![Average time](AvgTime.png "Average time")
 
 ### Detekce struktury
 
