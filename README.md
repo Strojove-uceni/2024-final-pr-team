@@ -92,6 +92,7 @@ Běžně používané metody pro detekci skew jsou Hough Transform, Randon Trans
 
 ![Average time](AvgTime.png "Average time")
 
+Z grafů plyne, že náš algoritmus je při požadovaném rozlišení 0.03 stupně 38 krát rychlejší než Full Search algoritmus a 1.6 krát rychlejší než Binary Search algoritmus.
 ### Detekce struktury
 
 ### Rozpoznání textu
