@@ -42,7 +42,7 @@ Kde Sauvola je metoda adaptivního prahování (w = window size, k = parametr me
 
 Testování probíhalo tak, že jsme přičetli +1 za každou správně uhodnutou rotaci pomocí Pytesseract `image_to_osd`. Accuracy pak vznikla jako počet správně predikovaných rotací / počet obrázků.
 
-### Detekce tabulky
+### Detekce tabulky na stránce
 
 #### Datasety
 
@@ -80,7 +80,7 @@ Testovací dataset obsahuje náhodně vybraných 10% obrázků z původního dat
 
 Z testování jsme vybrali jako nejlepší model YOLOv8 Medium, který byl trénován pouze na Našem datasetu. YOLOv11 Large je sice v průměru o 0,02 procentního bodu lepší, ale jeho průměrný čas inference s jedním obrázkem je výrazně vyšší.
 
-### Korekce rotace skew
+### Korekce skew tabulky (napřímení do horizontální polohy)
 
 #### Dataset
 Celý testovací dataset obrázků stránek s náhodným skew je k dispozici zde: <a href="https://drive.google.com/drive/folders/1aXV55ico1ymYOPBirWvxImXHgu1_utLr?usp=drive_link" target="_blank">Skew dataset</a>
@@ -95,9 +95,9 @@ Běžně používané metody pro detekci skew jsou Hough Transform, Randon Trans
 ![Average time](AvgTime.png "Average time")
 
 Z grafů plyne, že náš algoritmus je při požadovaném rozlišení 0.03 stupně 38 krát rychlejší než Full Search algoritmus a 1.6 krát rychlejší než Binary Search algoritmus.
-### Detekce struktury
+### Detekce struktury tabulky (sloupce a řádky)
 
-### Rozpoznání textu
+### Rozpoznání textu uvnitř jednotlivých buněk tabulky
 
 #### Dataset
 Pro rozpoznání textu jsme udělali vlastní dataset, kde jsme z tabulek z <a href="https://huggingface.co/datasets/bsmock/pubtables-1m/tree/main" target="_blank">PubTables1M-Structure</a> vyřízli buňky pomocí našeho výsledného modelu pro detekci struktury a tyto buňky manuálně olbelovali. K tomu jsme si vytvořili labelovací nástroj dostupný zde: <a href="https://drive.google.com/drive/folders/1an-eLrnwONomA2d6fbbfuQPfmFNnhuhf?usp=drive_link" target="_blank">Datasety</a> pod názvem `LabellingGUI.py`. Dataset pak obsahuje složku `images`, kde se nachází 800 obrázků výřezů a pak složku `labels`, kde jsou jim příslušné textové soubory obsahující text, který je na obrázku napsaný.
