@@ -108,6 +108,8 @@ Celé vyhodnocení je dostupné zde: <a href="https://drive.google.com/drive/fol
 ## Shrnutí
 Celý funkční software je k dispozici v souboru `TabuVision.ipynb`
 
+Pro trénování a testování jsme využívali <a href="http://2nasbyo.257.cz/" target="_blank">FJFI HELIOS cluster</a>, zejména NVIDIA Tesla V100 GPU. Dále pak MacBook M1 Pro.
+
 ## Odkazy
 Většina použitých kódů je dostupná ke stažení zde: <a href="https://drive.google.com/drive/folders/1VXDQpVIAQ3XSNKVEbv4OpxZIaYCLkBbK?usp=sharing" target="_blank">TabuVision Codes</a>
 
