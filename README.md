@@ -171,7 +171,7 @@ Uvažovali jsme celkem 4 metody: PyTesseract, EasyOCR, PaddleOCR, naše vlastní
 Celé vyhodnocení je dostupné zde: <a href="https://drive.google.com/drive/folders/1JAqTkgyboK71otH2tUDVGiaHpi_XyXc_?usp=drive_link" target="_blank">Vyhodnocení OCR</a>
 
 ## Shrnutí
-Celý funkční software je k dispozici v souboru `TabuVision.ipynb`
+O běh celého programu se stará třída `TabuVision` v souboru *TabuVision.py*, jejíž použití je demonstrováno v přiloženém notebooku `TabuVision.ipynb`. Analyzovat lze jak pouhé obrázky (formátu *.jpg*, *.png*), tak celé dokumenty formátu *.pdf*. V případě stačí do atributu třídy `TabuVision` nazvaném `allowed_suffix_others` přidat požadovanou příponu spolu s funkcí, který takový soubor otevře a převede na list obrázků typu `PIL.Image`.
 
 Pro trénování a testování jsme využívali <a href="http://2nasbyo.257.cz/" target="_blank">FJFI HELIOS cluster</a>, zejména NVIDIA Tesla V100 GPU. Dále pak MacBook M1 Pro.
 
