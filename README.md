@@ -106,7 +106,7 @@ Uvažovali jsme celkem 4 metody: PyTesseract, EasyOCR, PaddleOCR, naše vlastní
 Celé vyhodnocení je dostupné zde: <a href="https://drive.google.com/drive/folders/1JAqTkgyboK71otH2tUDVGiaHpi_XyXc_?usp=drive_link" target="_blank">Vyhodnocení OCR</a>
 
 ## Shrnutí
-
+Celý funkční software je k dispozici v souboru `TabuVision.ipynb`
 
 ## Odkazy
 Většina použitých kódů je dostupná ke stažení zde: <a href="https://drive.google.com/drive/folders/1VXDQpVIAQ3XSNKVEbv4OpxZIaYCLkBbK?usp=sharing" target="_blank">TabuVision Codes</a>
