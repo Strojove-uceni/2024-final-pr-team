@@ -52,6 +52,8 @@ Jakožto dataset pro účely detekce tabulky v obrázku dokumentu jsme využili 
 ##### Náš dataset
 Jako druhý dataset jsme manuálně anotovali tabulky v 6676 obrázcích, které jsme získali ze stažených výkazů zisků a ztrát ze stránek Ministerstva spravedlnosti https://justice.cz/ - stejné obrázky jako při testování modelů na korekci rotace. Tyto výkazy jsou PDF dokumenty obsahující naskenované stránky výkazů nebo stránky v digitální podobě. Tabulky jsme anotovali v prostředí CVAT pomocí bounding boxů a jednou třídou "table". Zhruba 10-20% obrázků v datasetu neobsahuje žádnou tabulku.
 
+Dataset je k dispozici zde: <a href="https://drive.google.com/drive/folders/1hhcZgzQTpxSs7YufF3XzcvXPFtPGMIg8?usp=drive_link" target="_blank">Náš dataset</a>
+
 #### Metody
 
 ##### Klasické metody zpracování obrazu
